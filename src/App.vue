@@ -1,0 +1,67 @@
+<script setup lang="ts">
+import { storeToRefs } from 'pinia'
+import { computed, onMounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import AppFooter from './components/AppFooter.vue'
+import AppHeader from './components/AppHeader.vue'
+import AppSidebar from './components/AppSidebar.vue'
+import { demoNavItems } from './router'
+import { useDemoUiStore } from './stores/demoTabs'
+
+const route = useRoute()
+const uiStore = useDemoUiStore()
+const { themeMode } = storeToRefs(uiStore)
+
+onMounted(() => {
+  uiStore.initializeTheme()
+})
+
+const heroTitle = computed(() => route.meta.title ?? 'Vue 3 教學示範')
+const heroCopy = computed(() => route.meta.description ?? '')
+const learningGoals = computed(() => route.meta.learningGoals ?? [])
+const activeTopicLabel = computed(() => route.meta.label ?? '未命名主題')
+</script>
+
+<template>
+  <div class="app-layout">
+    <AppSidebar :items="demoNavItems" />
+
+    <div class="app-shell">
+      <AppHeader
+        :current-title="heroTitle"
+        :current-description="heroCopy"
+        :theme-mode="themeMode"
+        @toggle-theme="uiStore.toggleThemeMode"
+      />
+
+      <main class="app-main">
+        <section class="hero-panel">
+          <p class="eyebrow">Vue 3 + Vite + TypeScript + Vue Router + Pinia</p>
+          <h1>{{ heroTitle }}</h1>
+          <p class="hero-copy">{{ heroCopy }}</p>
+
+          <div class="hero-goals">
+            <article class="goal-card">
+              <h2>目前練習重點</h2>
+              <ul>
+                <li v-for="goal in learningGoals" :key="goal">{{ goal }}</li>
+              </ul>
+            </article>
+            <article class="goal-card">
+              <h2>SPA 切分方式</h2>
+              <p>sidebar 的選單改由 Vue Router 控制，切換主題時會對應到不同網址與路由頁面。</p>
+            </article>
+            <article class="goal-card">
+              <h2>深淺色模式</h2>
+              <p>Pinia 現在專注管理全域 UI 狀態，例如主題模式，並把使用者選擇記到 localStorage。</p>
+            </article>
+          </div>
+        </section>
+
+        <RouterView />
+      </main>
+
+      <AppFooter :active-topic-label="activeTopicLabel" />
+    </div>
+  </div>
+</template>
