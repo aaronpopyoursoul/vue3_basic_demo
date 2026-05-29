@@ -210,14 +210,32 @@ dt {
   justify-items: end;
 }
 
+.auth-status,
 .theme-status {
   text-align: right;
   color: var(--muted);
 }
 
+.auth-status strong,
 .theme-status strong {
   display: block;
   color: var(--text);
+}
+
+.auth-status {
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: var(--surface-muted);
+}
+
+.auth-status--active {
+  border-color: rgba(15, 118, 110, 0.24);
+}
+
+.header-button-row {
+  display: flex;
+  gap: 10px;
 }
 
 .theme-toggle {
@@ -455,9 +473,62 @@ dt {
   transform: none;
 }
 
+.secondary-button {
+  border: 1px solid rgba(15, 118, 110, 0.2);
+  border-radius: 999px;
+  padding: 14px 22px;
+  background: transparent;
+  color: var(--text);
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.secondary-button:hover {
+  transform: translateY(-1px);
+  background: rgba(15, 118, 110, 0.08);
+  border-color: rgba(15, 118, 110, 0.32);
+}
+
 .hint {
   margin-top: 12px;
   font-size: 0.94rem;
+}
+
+.section-spacing {
+  margin-top: 20px;
+}
+
+.teaching-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  color: var(--muted);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stat-card {
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-strong);
+  border: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+}
+
+.stat-card span {
+  color: var(--muted);
+}
+
+.stat-card strong {
+  font-size: 1.8rem;
 }
 
 .field-error {
@@ -537,6 +608,45 @@ dt {
   min-height: 150px;
 }
 
+.flow-diagram {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 12px;
+  align-items: center;
+}
+
+.flow-step {
+  min-height: 188px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--line);
+  background: var(--surface-strong);
+  display: grid;
+  gap: 10px;
+}
+
+.flow-step span {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(15, 118, 110, 0.12);
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.flow-step p {
+  color: var(--muted);
+}
+
+.flow-arrow {
+  justify-self: center;
+  color: var(--accent-strong);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
 @media (max-width: 920px) {
   .app-layout {
     grid-template-columns: 1fr;
@@ -558,6 +668,15 @@ dt {
     justify-items: start;
   }
 
+  .auth-status,
+  .theme-status {
+    text-align: left;
+  }
+
+  .header-button-row {
+    flex-wrap: wrap;
+  }
+
   .app-main {
     padding: 20px;
   }
@@ -565,8 +684,14 @@ dt {
   .hero-goals,
   .demo-grid,
   .notes-grid,
-  .result-item dl {
+  .result-item dl,
+  .stats-grid,
+  .flow-diagram {
     grid-template-columns: 1fr;
+  }
+
+  .flow-arrow {
+    transform: rotate(90deg);
   }
 
   .hero-panel,

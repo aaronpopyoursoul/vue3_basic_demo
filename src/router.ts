@@ -1,6 +1,10 @@
+import type { Pinia } from 'pinia'
 import { createRouter, createWebHistory, type RouteMeta } from 'vue-router'
-import LoginDemoView from './views/LoginDemoView.vue'
+import ClaimsView from './views/ClaimsView.vue'
+import DashboardView from './views/DashboardView.vue'
+import LoginView from './views/LoginView.vue'
 import PolicySearchView from './views/PolicySearchView.vue'
+import { useAuthStore } from './stores/auth'
 
 export interface DemoRouteMeta extends Record<string, unknown> {
   shortLabel: string
@@ -8,6 +12,7 @@ export interface DemoRouteMeta extends Record<string, unknown> {
   title: string
   description: string
   learningGoals: string[]
+  requiresAuth?: boolean
 }
 
 export interface DemoNavItem extends DemoRouteMeta {
@@ -16,20 +21,39 @@ export interface DemoNavItem extends DemoRouteMeta {
 
 export const demoNavItems: DemoNavItem[] = [
   {
-    path: '/policies',
-    shortLabel: '01',
-    label: '保單查詢練習',
-    title: '保單查詢元件拆分示範',
-    description: '這一頁聚焦在父子元件責任分工、props / emit 流程，以及為什麼共用區塊適合用 slot。',
-    learningGoals: ['拆分表單與結果元件', '資料向下、事件向上', '共用區塊與 slot'],
+    path: '/login',
+    shortLabel: '00',
+    label: '登入入口',
+    title: '登入與 Token 管理',
+    description: '從登入頁開始，建立 access token、auth store 與後續受保護路由的基礎。',
+    learningGoals: ['auth store 保存 token', '登入後導頁', '避免頁面直接碰 localStorage'],
   },
   {
-    path: '/auth',
+    path: '/dashboard',
+    shortLabel: '01',
+    label: 'Dashboard',
+    title: 'Route Guard 與登入保護',
+    description: '這裡聚焦在 requiresAuth 路由 meta、guard 邏輯，以及前端導頁保護與後端驗證的分工。',
+    learningGoals: ['requiresAuth meta', '未登入導回 /login', 'guard 與後端驗證分工'],
+    requiresAuth: true,
+  },
+  {
+    path: '/policies',
     shortLabel: '02',
-    label: '登入表單練習',
-    title: '登入表單 API 寫法比較',
-    description: '這一頁同時示範 Options API 與 Composition API，並把共用登入邏輯抽成 composable。',
-    learningGoals: ['比較兩種 API 的維護方式', '抽出可重用 composable', '理解邏輯重用與畫面重用'],
+    label: 'Policies',
+    title: 'Policy 查詢與 Header 注入',
+    description: '保單查詢頁保留原本的元件拆分，並補上 protected route 與 Authorization header 注入教學。',
+    learningGoals: ['保單查詢互動', 'interceptor 注入 Authorization', 'Pinia 在查詢場景的延伸應用'],
+    requiresAuth: true,
+  },
+  {
+    path: '/claims',
+    shortLabel: '03',
+    label: 'Claims',
+    title: '401 攔截與前端處理流程',
+    description: '這一頁專注在 401 發生後，interceptor、store 與 router 的接力順序。',
+    learningGoals: ['401 後清 token', '更新 auth store', '導回 /login'],
+    requiresAuth: true,
   },
 ]
 
@@ -37,20 +61,29 @@ declare module 'vue-router' {
   interface RouteMeta extends Partial<DemoRouteMeta> {}
 }
 
-const policyMeta: RouteMeta = {
-  ...demoNavItems[0],
-}
-
-const authMeta: RouteMeta = {
-  ...demoNavItems[1],
-}
+const loginMeta: RouteMeta = { ...demoNavItems[0] }
+const dashboardMeta: RouteMeta = { ...demoNavItems[1] }
+const policyMeta: RouteMeta = { ...demoNavItems[2] }
+const claimsMeta: RouteMeta = { ...demoNavItems[3] }
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     {
       path: '/',
-      redirect: '/policies',
+      redirect: '/dashboard',
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: LoginView,
+      meta: loginMeta,
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: DashboardView,
+      meta: dashboardMeta,
     },
     {
       path: '/policies',
@@ -59,12 +92,41 @@ const router = createRouter({
       meta: policyMeta,
     },
     {
-      path: '/auth',
-      name: 'auth',
-      component: LoginDemoView,
-      meta: authMeta,
+      path: '/claims',
+      name: 'claims',
+      component: ClaimsView,
+      meta: claimsMeta,
     },
   ],
 })
+
+let guardsRegistered = false
+
+export function setupRouterGuards(pinia: Pinia) {
+  if (guardsRegistered) {
+    return
+  }
+
+  router.beforeEach((to) => {
+    const authStore = useAuthStore(pinia)
+
+    if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+      return {
+        path: '/login',
+        query: {
+          redirect: to.fullPath,
+        },
+      }
+    }
+
+    if (to.path === '/login' && authStore.isAuthenticated) {
+      return { path: '/dashboard' }
+    }
+
+    return true
+  })
+
+  guardsRegistered = true
+}
 
 export default router
